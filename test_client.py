@@ -33,12 +33,12 @@ class ConsoleClient(Int32StringReceiver):
     def startConsole(self):
         exitCmd = ['exit', 'quit', 'done']
         print "Enter the messages you want to send to the server"
-        print 'Example: {"command: "whoami", "args":{}})'
+        print 'Example: {"command": "whoami", "args":{}})'
         print "To exit, type exit, quit, or done"
-        message = ""
+        message = raw_input()
         while (message not in exitCmd):
-            message = raw_input()
             self.sendString(message)
+            message = raw_input()
         reactor.stop()
 
 def protocol_created(p):
