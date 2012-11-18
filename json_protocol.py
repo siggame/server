@@ -1,9 +1,5 @@
 # -*- coding: iso-8859-1 -*-
 
-from twisted.internet import epollreactor
-epollreactor.install()
-
-from twisted.internet import protocol, reactor
 from twisted.protocols.basic import Int32StringReceiver
 
 import json
@@ -23,12 +19,12 @@ class JSONProtocol(Int32StringReceiver):
             expr = json.loads(string)
         except:
             print 'Bad message received: %s' % string
-        for command in expr:
-            self.app.run(command)
+            error = {'status': 'parse error'}
+            error['message'] = string
+            self.send_json(error)
+            return
+        self.app.run(expr)
 
-    @classmethod
-    def main(cls, port=19000):
-        f = protocol.ServerFactory()
-        f.protocol = cls
-        reactor.listenTCP(port, f)
-        reactor.run()
+    def send_json(self, object):
+        message = json.dumps(object)
+        self.sendString(message)
