@@ -6,7 +6,6 @@ def command(function):
     function.is_command = True
     return function
 
-
 class App(object):
     def send_error(self, command, message, status='error'):
         error = copy(command)
@@ -41,7 +40,6 @@ class App(object):
             return
         self.connection.send_json(result)
 
-
 class LoginApp(App):
     """
     This is the starting app for connections.
@@ -56,6 +54,8 @@ class LoginApp(App):
     def login(self, username, password, connection_type):
         # TODO Actual login stuff
         self.connection.app = GameApp(self.connection)
+        result = {'status': 'success'}
+        self.connection.send_json(result)
 
 
 class GameApp(App):
