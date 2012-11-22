@@ -4,6 +4,7 @@ from collections import defaultdict
 
 def command(function):
     function.is_command = True
+    return function
 
 
 class App(object):
@@ -19,19 +20,26 @@ class App(object):
     def disconnect(self, reason):
         pass
 
+    def get_command(self, command_name):
+        return getattr(self, command_name, None)
+
     def run(self, command):
         try:
-            c = command['command']
+            command_name = command['command']
             args = command['args']
         except KeyError:
             self.send_error(command, 'was missing values')
             return
-        f = getattr(self, c, None)
-        if not f or not getattr(f, 'is_command', False):
+        function = self.get_command(command_name)
+        if not function or not getattr(function, 'is_command', False):
             self.send_error(command, 'command not found')
             return
-
-        return self.commands[c](self, **args)
+        try:
+            result = function(**args)
+        except TypeError:
+            self.send_error(command, "incorrect arguments")
+            return
+        self.connection.send_json(result)
 
 
 class LoginApp(App):
@@ -45,8 +53,9 @@ class LoginApp(App):
     """
 
     @command
-    def login(self, username, password, type):
-        pass
+    def login(self, username, password, connection_type):
+        # TODO Actual login stuff
+        self.connection.app = GameApp(self.connection)
 
 
 class GameApp(App):
@@ -67,19 +76,23 @@ class GameApp(App):
                 game_number += 1
         if game_number in self.games[game_type]:
             # Join existing game
-            game = self.games[game_type][game_number]
+            self.game = self.games[game_type][game_number]
         else:
             # Create new game
             try:
-                game_mod = __import__('plugins.%s.game' % game_type,
-                                      fromlist=['*'])
+                game_module = __import__('plugins.%s.game' % game_type,
+                                         fromlist=['*'])
             except ImportError:
                 #TODO Send some error
                 return
-            game = game_mod.Game()
-            self.games[game_type][game_number] = game
-        game.add_connection(self, game_details)
-
+            self.game = game_module.Game(game_details)
+            self.games[game_type][game_number] = self.game
+        self.game.add_connection(self, game_details)
+        # Monkey patch so all future commands deal directly with the game
+        self.get_command = self.get_command_from_game
         #TODO Make certain game objects are removed from self.games when they
         #TODO end.  Also, its more minor but game_type's should be removed as
         #TODO well.
+
+    def get_command_from_game(self, command_name):
+        return getattr(self.game, command_name, None)
