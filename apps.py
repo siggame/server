@@ -87,9 +87,10 @@ class GameApp(App):
                 return
             self.game = game_module.Game(game_details)
             self.games[game_type][game_number] = self.game
-        self.game.add_connection(self, game_details)
-        # Monkey patch so all future commands deal directly with the game
-        self.get_command = self.get_command_from_game
+        # Attempt to connect to the game
+        if self.game.add_connection(self, game_details):
+            # Monkey patch so all future commands deal directly with the game
+            self.get_command = self.get_command_from_game
         #TODO Make certain game objects are removed from self.games when they
         #TODO end.  Also, its more minor but game_type's should be removed as
         #TODO well.
