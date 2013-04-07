@@ -8,7 +8,8 @@ def command(function):
 
 class App(object):
     def send_error(self, command, message, status='error'):
-        error = copy(command)
+        error = {}
+        error['command'] = command
         error['type'] = status
         error['message'] = message
         self.connection.send_json(error)
@@ -37,6 +38,9 @@ class App(object):
             result = function(**args)
         except TypeError:
             self.send_error(command, "incorrect arguments")
+            return
+        except Exception as e:
+            self.send_error(command, e.message)
             return
         result['type'] = command_name
         self.connection.send_json(result)
