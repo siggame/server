@@ -65,32 +65,33 @@ class LoginApp(App):
 class GameApp(App):
     games = defaultdict(dict)
 
+    def __init__(self, connection, game_type):
+        if '.' in game_type:
+            raise ValueError("Game name cannot contain '.'")
+        self.game_module = __import__('plugins.%s.game' % game_type,
+                fromlist=['*'])
+        App.__init__(self, connection)
+        self.game_type = game_type
+
     @command
-    def join_game(self, game_type, **game_details):
+    def join_game(self, **game_details):
         # Check if game you want to join exists, otherwise create it.
         # If game exists, make certain you can join it
         # Transition to the GameApp state
-        # TODO Sanitize game_type
         if 'game_number' in game_details:
             game_number = game_details['game_number']
         else:
             # If you don't specify a game number, find the lowest unused
             game_number = 1
-            while game_number in self.games[game_type]:
+            while game_number in self.games[self.game_type]:
                 game_number += 1
-        if game_number in self.games[game_type]:
+        if game_number in self.games[self.game_type]:
             # Join existing game
-            self.game = self.games[game_type][game_number]
+            self.game = self.games[self.game_type][game_number]
         else:
             # Create new game
-            try:
-                game_module = __import__('plugins.%s.game' % game_type,
-                                         fromlist=['*'])
-            except ImportError:
-                #TODO Send some error
-                return
-            self.game = game_module.Game(game_details)
-            self.games[game_type][game_number] = self.game
+            self.game = self.game_module.Game(game_details)
+            self.games[self.game_type][game_number] = self.game
         # Attempt to connect to the game
         if self.game.add_connection(self, game_details):
             # Monkey patch so all future commands deal directly with the game
