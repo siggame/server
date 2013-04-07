@@ -33,7 +33,7 @@ class ConsoleClient(Int32StringReceiver):
     def startConsole(self):
         exitCmd = ['exit', 'quit', 'done']
         print "Enter the messages you want to send to the server"
-        print 'Example: {"command": "whoami", "args":{}})'
+        print 'Example: {"type": "whoami", "args":{}})'
         print "To exit, type exit, quit, or done"
         message = raw_input()
         while (message not in exitCmd):

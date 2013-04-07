@@ -9,7 +9,7 @@ def command(function):
 class App(object):
     def send_error(self, command, message, status='error'):
         error = copy(command)
-        error['status'] = status
+        error['type'] = status
         error['message'] = message
         self.connection.send_json(error)
 
@@ -24,7 +24,7 @@ class App(object):
 
     def run(self, command):
         try:
-            command_name = command['command']
+            command_name = command['type']
             args = command['args']
         except KeyError:
             self.send_error(command, 'was missing values')
@@ -38,6 +38,7 @@ class App(object):
         except TypeError:
             self.send_error(command, "incorrect arguments")
             return
+        result['type'] = command_name
         self.connection.send_json(result)
 
 class LoginApp(App):
@@ -54,8 +55,7 @@ class LoginApp(App):
     def login(self, username, password, connection_type):
         # TODO Actual login stuff
         self.connection.app = GameApp(self.connection)
-        result = {'status': 'success'}
-        self.connection.send_json(result)
+        return {'status': 'success'}
 
 
 class GameApp(App):
