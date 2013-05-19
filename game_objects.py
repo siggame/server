@@ -36,6 +36,7 @@ class GameObject(object):
     def __init__(self, game):
         self.game = game
         self.id = game.next_id()
+        self.game.additions.append(self)
         # TODO Register self with game objects stuff, which also handles animation
 
     def __del__(self):
