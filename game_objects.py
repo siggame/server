@@ -17,11 +17,11 @@ class Game(object):
     def flush(self):
         output = []
         for added in self.additions:
-            output.append({'action': 'add', 'id': added})
+            output.append({'action': 'add', 'id': added.id, 'type':added.__class__.__name__})
         for id, changes in self.changes.items():
             output.append({'action': 'update', 'id': id, 'changes': changes})
         for deleted in self.deletions:
-            output.append({'action': 'remove', 'id': deleted})
+            output.append({'action': 'remove', 'id': deleted.id})
 
         self.additions = []
         self.changes = defaultdict(dict)
