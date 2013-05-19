@@ -53,40 +53,41 @@ class GameObject(object):
         attributes['id'] = self.id
         return attributes
 
+if __name__ == '__main__':
+    # TODO: Separate tests out into their own part
+    class XUnit(GameObject):
+        # Example Unit that tracks the x attribute
+        game_state_attributes = set(['x']) | GameObject.game_state_attributes
 
-class XUnit(GameObject):
-    # Example Unit that tracks the x attribute
-    game_state_attributes = set(['x']) | GameObject.game_state_attributes
-
-    def __init__(self, game, x):
-        super(XUnit, self).__init__(game)
-        self.x = x
-        self.y = 'y'
+        def __init__(self, game, x):
+            super(XUnit, self).__init__(game)
+            self.x = x
+            self.y = 'y'
 
 
-class YUnit(GameObject):
-    # Example Unit that tracks the y attribute
-    game_state_attributes = set(['y']) | GameObject.game_state_attributes
+    class YUnit(GameObject):
+        # Example Unit that tracks the y attribute
+        game_state_attributes = set(['y']) | GameObject.game_state_attributes
 
-    def __init__(self, game, x):
-        super(YUnit, self).__init__(game)
-        self.x = x
-        self.y = 'y'
+        def __init__(self, game, x):
+            super(YUnit, self).__init__(game)
+            self.x = x
+            self.y = 'y'
 
-game = Game()
-g = GameObject(game)
-print g.game
-test = XUnit(game, 14)
-print "INITED", game.flush()
-test.x = 0
-test.y = 7
-print 'Writted', game.flush()
+    game = Game()
+    g = GameObject(game)
+    print g.game
+    test = XUnit(game, 14)
+    print "INITED", game.flush()
+    test.x = 0
+    test.y = 7
+    print 'Writted', game.flush()
 
-other = YUnit(game, 14)
-print "INITED", game.flush()
-other.x = 0
-other.y = 7
-print 'Writted', game.flush()
+    other = YUnit(game, 14)
+    print "INITED", game.flush()
+    other.x = 0
+    other.y = 7
+    print 'Writted', game.flush()
 
-print test.jsonize()
-print other.jsonize()
+    print test.jsonize()
+    print other.jsonize()
