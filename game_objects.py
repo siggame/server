@@ -29,7 +29,7 @@ class Game(object):
         return output
 
 
-class Game_Object(object):
+class GameObject(object):
     # Root game object
     game_state_attributes = set()
 
@@ -54,35 +54,35 @@ class Game_Object(object):
         return attributes
 
 
-class X_Unit(Game_Object):
+class XUnit(GameObject):
     # Example Unit that tracks the x attribute
-    game_state_attributes = set(['x']) | Game_Object.game_state_attributes
+    game_state_attributes = set(['x']) | GameObject.game_state_attributes
 
     def __init__(self, game, x):
-        super(X_Unit, self).__init__(game)
+        super(XUnit, self).__init__(game)
         self.x = x
         self.y = 'y'
 
 
-class Y_Unit(Game_Object):
+class YUnit(GameObject):
     # Example Unit that tracks the y attribute
-    game_state_attributes = set(['y']) | Game_Object.game_state_attributes
+    game_state_attributes = set(['y']) | GameObject.game_state_attributes
 
     def __init__(self, game, x):
-        super(Y_Unit, self).__init__(game)
+        super(YUnit, self).__init__(game)
         self.x = x
         self.y = 'y'
 
 game = Game()
-g = Game_Object(game)
+g = GameObject(game)
 print g.game
-test = X_Unit(game, 14)
+test = XUnit(game, 14)
 print "INITED", game.flush()
 test.x = 0
 test.y = 7
 print 'Writted', game.flush()
 
-other = Y_Unit(game, 14)
+other = YUnit(game, 14)
 print "INITED", game.flush()
 other.x = 0
 other.y = 7
