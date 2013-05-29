@@ -20,7 +20,7 @@ class JSONProtocol(Int32StringReceiver):
         except:
             print 'Bad message received: %s' % string
             error = {'type': 'parse error'}
-            error['message'] = string
+            error['args'] = {'message': string}
             self.send_json(error)
             return
         self.app.run(expr)
