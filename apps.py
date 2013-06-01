@@ -1,17 +1,44 @@
-from copy import copy
 from collections import defaultdict
+import traceback
 
 
 def command(function):
     function.is_command = True
     return function
 
+def takes(**types):
+    def inner(func):
+        def func_wrapper(self, **kwargs):
+            errors = []
+            for i, j in kwargs.items():
+                if i not in types:
+                    errors.append("%s is an illegal parameter" % i)
+                    continue
+                if not isinstance(i, types[i]):
+                    errors.append("%s should be a %s, (received %s)" %
+                            (i, types[i], j.__class__.__name__))
+                    continue
+            for i in types:
+                if i not in kwargs:
+                    errors.append("%s expected but not received" % i)
+
+            if errors:
+                return {'type': 'bad arguments',
+                        'args': {
+                            'message': '\n'.join(errors)
+                            }
+                        }
+            return func(self, **kwargs)
+        return func_wrapper
+    return inner
+
+
 class App(object):
     def send_error(self, command, message, status='error'):
-        error = {}
-        error['command'] = command
+        error = {'args': {}}
         error['type'] = status
-        error['message'] = message
+        error['args']['command'] = command
+        error['args']['message'] = message
         self.connection.send_json(error)
 
     def __init__(self, connection):
@@ -32,17 +59,15 @@ class App(object):
             return
         function = self.get_command(command_name)
         if not function or not getattr(function, 'is_command', False):
-            self.send_error(command, 'command not found')
+            self.send_error(command,
+                    "%s is not a valid command" % command_name,
+                    'command not found')
             return
         try:
             result = function(**args)
-        except TypeError:
-            self.send_error(command, "incorrect arguments")
+        except:
+            self.send_error(command, traceback.format_exc())
             return
-        except Exception as e:
-            self.send_error(command, e.message)
-            return
-        result['type'] = command_name
         self.connection.send_json(result)
 
 class LoginApp(App):
@@ -56,10 +81,15 @@ class LoginApp(App):
     """
 
     @command
-    def login(self, username, password, connection_type):
+    @takes(connection_type=basestring)
+    def login(self, connection_type=str):
         # TODO Actual login stuff
-        self.connection.app = GameApp(self.connection)
-        return {'status': 'success'}
+        try:
+            self.connection.app = GameApp(self.connection, connection_type)
+        except ImportError:
+            return {'type': 'failure', 'args':
+                    {'message': '%s is not a game type' % connection_type}}
+        return {'type': 'success'}
 
 
 class GameApp(App):
