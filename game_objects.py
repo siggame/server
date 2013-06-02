@@ -49,15 +49,14 @@ class Game(object):
     __metaclass__ = GameMeta
     # Shell game to show interaction
     def __init__(self):
-        self.globals = Globals(self)
-        for i in self._globals:
-            self.globals[i] = None
-        self.objects = ObjectHolder(self)
         self.highest_id = 0
         self.additions = []
         self.changes = defaultdict(dict)
         self.global_changes = {}
         self.deletions = []
+
+        self.globals = Globals(self)
+        self.objects = ObjectHolder(self)
 
     def add_object(self, object):
         self.add.append(object)
