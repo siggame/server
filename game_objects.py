@@ -12,23 +12,25 @@ class GameObject(object):
     game_state_attributes = set()
 
     def __init__(self, game, **attributes):
+        #Bypass the __setattr__ method when setting the game
+        object.__setattr__(self, 'game', game)
+        #And the initial id, so id is defined
+        object.__setattr__(self, 'id', game.next_id())
+
         for key in self.game_state_attributes:
             setattr(self, key, None)
-        self.game = game
-        self.id = game.next_id()
-        game.add(self)
-        for key, value in attributes:
+        game.add_object(self)
+        for key, value in attributes.items():
             if key in self.game_state_attributes:
                 setattr(self, key, value)
 
-    def __del__(self):
-        self.game.remove(self)
-
     def __setattr__(self, name, value):
         #We need to record changes for the game logs
-        if self.game and name in self.game_state_attributes:
-            self.game.changes[self.id][name] = value
         object.__setattr__(self, name, value)
+        if self.game and \
+                self.id in self.game.objects and \
+                name in self.game_state_attributes:
+            self.game.changes[self.id][name] = value
 
     def jsonize(self):
         attributes = dict((key, getattr(self, key))
@@ -63,7 +65,12 @@ class Game(object):
         self.objects = ObjectHolder(self)
 
     def add_object(self, object):
-        self.add.append(object)
+        self.additions.append(object)
+        self.objects.add(object)
+
+    def next_id(self):
+        self.highest_id += 1
+        return self.highest_id
 
 class ObjectHolder(dict):
     def __init__(self, game):
@@ -73,7 +80,7 @@ class ObjectHolder(dict):
             setattr(self, i, [])
 
     def add(self, value):
-        if not isinstance(value, self.game.Object):
+        if not isinstance(value, self._game.Object):
             raise ValueError("Received object was not a game object")
         self[value.id] = value
 
