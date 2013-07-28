@@ -63,7 +63,7 @@ class Game(object):
 
         self.globals = Globals(self)
         self.objects = ObjectHolder(self)
-        self._connections = []
+        self.connections = []
         self.state = 'new'
         self.details = details
 
