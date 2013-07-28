@@ -123,12 +123,33 @@ class GameApp(App):
             self.game = self.game_module.Game(game_details)
             self.games[self.game_type][game_number] = self.game
         # Attempt to connect to the game
-        if self.game.add_connection(self, game_details):
-            # Monkey patch so all future commands deal directly with the game
-            self.get_command = self.get_command_from_game
+        self.game.add_connection(self, game_details)
         #TODO Make certain game objects are removed from self.games when they
         #TODO end.  Also, its more minor but game_type's should be removed as
         #TODO well.
 
-    def get_command_from_game(self, command_name):
-        return getattr(self.game, command_name, None)
+    def get_command(self, command_name):
+        command = App.get_command(self, command_name)
+        if command:
+            return command
+        if not self.game:
+            return None
+
+        @command
+        def command(**args):
+            if 'actor' not in args:
+                return {'type': 'bad arguments',
+                        'args': {'message': 'actor required'}}
+            actor = self.game.objects.get(args['actor'], None)
+            if not actor:
+                return {'type': 'bad arguments',
+                        'args': {'message': 'actor does not exist'}}
+            command = getattr(actor, command_name, None)
+            if not command:
+                return {'type': 'error',
+                        'args': {'message': '%s does not have command %s' %
+                            (actor.__class__.__name__, command_name)}}
+            command(**args)
+            self.game.flush()
+            return {'type': 'success', 'args': {}}
+        return command
