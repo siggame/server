@@ -54,7 +54,7 @@ class Game(object):
     _globals = []
     __metaclass__ = GameMeta
     # Shell game to show interaction
-    def __init__(self):
+    def __init__(self, details):
         self.highest_id = 0
         self.additions = []
         self.changes = defaultdict(dict)
@@ -65,6 +65,7 @@ class Game(object):
         self.objects = ObjectHolder(self)
         self._connections = []
         self.state = 'new'
+        self.details = details
 
     def add_object(self, object):
         self.additions.append(object)
