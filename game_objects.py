@@ -37,6 +37,7 @@ class GameObject(object):
 class GameMeta(type):
     def __new__(meta, name, bases, dct):
         cls = type.__new__(meta, name, bases, dct)
+        cls._object_types = {}
         class Object(GameObject):
             _game = cls
             __metaclass__ = GameObjectMeta
