@@ -59,7 +59,7 @@ class Game(object):
         self.additions = []
         self.changes = defaultdict(dict)
         self.global_changes = {}
-        self.deletions = []
+        self.removals = []
 
         self.globals = Globals(self)
         self.objects = ObjectHolder(self)
@@ -76,8 +76,37 @@ class Game(object):
         return self.highest_id
 
     def flush(self):
-        #TODO: Clear list of changes and send them all to the players
-        pass
+        output = []
+
+        for added in self.additions:
+            output.append({'action':'add', 'id': added.id,
+                'type': added.__class__.__name__})
+
+        for id, values in self.changes.items():
+            output.append({'action': 'update', 'id': id, 'values': values})
+
+        for glob, value in self.global_changes.items():
+            output.append({'action':'global_update', 'variable': glob,
+                'value': value})
+
+        for removed in self.removals:
+            output.append({'action': 'remove', 'id': removed.id,
+                'type': removed.__class__.__name__})
+
+        self.additions = []
+        self.changes = defaultdict(dict)
+        self.global_changes = {}
+        self.removals = []
+
+        message = {'type': 'changes',
+                'args': {'changes': output}}
+
+        for i in self.connections:
+            i.connection.send_json(message)
+
+        #TODO: Server-side glog
+
+        return True
 
     def add_connection(self, connection, details):
         if self.state != 'new':
