@@ -63,6 +63,8 @@ class Game(object):
 
         self.globals = Globals(self)
         self.objects = ObjectHolder(self)
+        self._connections = []
+        self.state = 'new'
 
     def add_object(self, object):
         self.additions.append(object)
@@ -75,6 +77,19 @@ class Game(object):
     def flush(self):
         #TODO: Clear list of changes and send them all to the players
         pass
+
+    def add_connection(self, connection, details):
+        if self.state != 'new':
+            return False
+        self.connections.append(connection)
+        if len(self.connections) == 2:
+            self.start()
+        return True
+
+    def start(self):
+        #TODO: initialize the game
+        pass
+
 
 class ObjectHolder(dict):
     def __init__(self, game):
