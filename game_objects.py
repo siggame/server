@@ -3,6 +3,7 @@ from collections import defaultdict
 class GameObjectMeta(type):
     def __new__(meta, name, bases, dct):
         cls = type.__new__(meta, name, bases, dct)
+        #record the type in its game
         cls._game._object_types[name] = cls
         return cls
 
@@ -24,6 +25,7 @@ class GameObject(object):
         self.game.remove(self)
 
     def __setattr__(self, name, value):
+        #We need to record changes for the game logs
         if self.game and name in self.game_state_attributes:
             self.game.changes[self.id][name] = value
         object.__setattr__(self, name, value)
@@ -40,6 +42,7 @@ class GameMeta(type):
         cls._object_types = {}
         class Object(GameObject):
             _game = cls
+            #GameObject can't have the metaclass because it has no game
             __metaclass__ = GameObjectMeta
         cls.Object = Object
         return cls
@@ -104,4 +107,5 @@ class Globals(dict):
         self._game.global_changes[key] = value
 
     def __delitem__(self, key):
+        #we don't want globals to drop out of existence
         self[key] = None
