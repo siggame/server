@@ -72,6 +72,10 @@ class Game(object):
         self.highest_id += 1
         return self.highest_id
 
+    def flush(self):
+        #TODO: Clear list of changes and send them all to the players
+        pass
+
 class ObjectHolder(dict):
     def __init__(self, game):
         dict.__init__(self)
