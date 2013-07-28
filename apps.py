@@ -123,7 +123,10 @@ class GameApp(App):
             self.game = self.game_module.Game(game_details)
             self.games[self.game_type][game_number] = self.game
         # Attempt to connect to the game
-        self.game.add_connection(self, game_details)
+        if self.game.add_connection(self, game_details):
+            return {'type': 'success'}
+        else:
+            return {'type': 'failure', 'args': {'message': 'game has already started'}}
         #TODO Make certain game objects are removed from self.games when they
         #TODO end.  Also, its more minor but game_type's should be removed as
         #TODO well.
