@@ -81,9 +81,10 @@ class LoginApp(App):
     """
 
     @command
-    @takes(connection_type=basestring)
-    def login(self, connection_type=str):
+    @takes(connection_type=basestring, username=basestring, password=basestring)
+    def login(self, connection_type=str, username = '', password = ''):
         # TODO Actual login stuff
+        self.connection.username = username
         try:
             self.connection.app = GameApp(self.connection, connection_type)
         except ImportError:
