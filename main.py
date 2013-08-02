@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 from twisted.internet import epollreactor
 epollreactor.install()
 
