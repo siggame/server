@@ -126,6 +126,7 @@ class Game(object):
 
             #Link the player to the connection, so we can easily associate them
             player._connection = i
+            i.send_json({'type': 'player_id', 'args': {'id': player.id}})
 
         self.before_start()
         self.start_turn()
