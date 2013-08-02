@@ -75,6 +75,11 @@ class Game(object):
         self.highest_id += 1
         return self.highest_id
 
+    def send_all(self, message):
+        for i in self.connections:
+            i.connection.send_json(message)
+        #TODO: Server-side glog
+
     def flush(self):
         output = []
 
@@ -101,10 +106,7 @@ class Game(object):
         message = {'type': 'changes',
                 'args': {'changes': output}}
 
-        for i in self.connections:
-            i.connection.send_json(message)
-
-        #TODO: Server-side glog
+        self.send_all(message)
 
         return True
 
@@ -117,8 +119,40 @@ class Game(object):
         return True
 
     def start(self):
-        #TODO: initialize the game
-        pass
+        self.state = 'running'
+        for i in self.connections:
+            Player = self._object_types['Player']
+            player = Player(name = i.username)
+
+            #Link the player to the connection, so we can easily associate them
+            player._connection = i
+
+        self.before_start()
+        self.start_turn()
+
+    def start_turn(self):
+        self.turn_number += 1
+        self.player_id = self.turn_number % 2
+        self.current_player = self.objects.players[self.player_id]
+        self.before_turn()
+        self.flush()
+        self.send_all({'type': 'start_turn'})
+
+    def end_turn(self):
+        self.send_all({'type': 'end_turn'})
+        self.after_turn()
+        self.flush()
+
+        winner, reason = self.check_winner()
+        if winner:
+            self.end_game(winner, reason)
+        else:
+            self.start_turn()
+
+    def end_game(self, winner, reason):
+        self.state = 'over'
+        self.winner = winner.id
+        self.send_all
 
 
 class ObjectHolder(dict):
