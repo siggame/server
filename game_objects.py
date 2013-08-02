@@ -55,7 +55,7 @@ class Game(object):
     __metaclass__ = GameMeta
     # Shell game to show interaction
     def __init__(self, details):
-        self.highest_id = 0
+        self.highest_id = -1
         self.additions = []
         self.changes = defaultdict(dict)
         self.global_changes = {}
