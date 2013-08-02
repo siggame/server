@@ -152,50 +152,49 @@ class Game(object):
     def end_game(self, winner, reason):
         self.state = 'over'
         self.winner = winner.id
-        self.send_all
+        self.send_all({'type': 'game_over', 'args': {'winner': winner.id, 'reason': reason}})
+        self.objects.clear()
 
 
 class ObjectHolder(dict):
     def __init__(self, game):
         dict.__init__(self)
-        self._game = game
+        self.game = game
         for i in game._object_types:
             setattr(self, i, [])
 
     def add(self, value):
-        if not isinstance(value, self._game.Object):
+        if not isinstance(value, self.game.Object):
             raise ValueError("Received object was not a game object")
         self[value.id] = value
+
+    def clear(self):
+        dict.clear(self)
+        for i in self.game._object_types:
+            setattr(self, i, [])
 
     def __setitem__(self, key, value):
         if key in self:
             del self[key]
         dict.__setitem__(self, key, value)
-        for name, cls in self._game._object_types.items():
+        for name, cls in self.game._object_types.items():
             if isinstance(value, cls):
                 getattr(self, name).append(value)
 
     def __delitem__(self, key):
         value = self[key]
         dict.__delitem__(self, key)
-        for name in self._game._object_types:
+        for name in self.game._object_types:
             list = getattr(self, name)
             if value in list:
                 list.remove(value)
 
-class Globals(dict):
+class Globals(object):
     def __init__(self, game):
-        dict.__init__(self)
-        self._game = game
+        self.game = game
         for i in game._globals:
-            dict.__setitem__(i, None)
+            setattr(self, i, None)
 
-    def __setitem__(self, key, value):
-        if key not in self._game._globals:
-            raise ValueError("%s is not a known global" % key)
-        dict.__setitem__(self, key, value)
-        self._game.global_changes[key] = value
-
-    def __delitem__(self, key):
-        #we don't want globals to drop out of existence
-        self[key] = None
+    def __setattr__(self, key, value):
+        object.__setattr__(self, key, value)
+        self.game.global_changes[key] = value
