@@ -1,6 +1,6 @@
 from collections import defaultdict
 import traceback
-from util import command
+from util import command, is_command
 
 def takes(**types):
     def inner(func):
@@ -54,7 +54,7 @@ class App(object):
             self.send_error(command, 'was missing values')
             return
         function = self.get_command(command_name)
-        if not function or not getattr(function, 'is_command', False):
+        if not function or not is_command(function):
             self.send_error(command,
                     "%s is not a valid command" % command_name,
                     'command not found')
@@ -137,21 +137,25 @@ class GameApp(App):
         command = App.get_command(self, command_name)
         if command:
             return command
-        if not self.game:
+        if not self.game or self.game.state != 'running':
             return None
         #TODO Make sure it's the player's turn
 
         @command
         def command(**args):
+            if self.connection != self.game.current_player._connection:
+                return {'type': 'failure',
+                        'args': {'message': 'not your turn'}}
             if 'actor' not in args:
                 return {'type': 'bad arguments',
                         'args': {'message': 'actor required'}}
             actor = self.game.objects.get(args['actor'], None)
+            del args['actor']
             if not actor:
                 return {'type': 'bad arguments',
                         'args': {'message': 'actor does not exist'}}
             command = getattr(actor, command_name, None)
-            if not command:
+            if not command or not is_command(command):
                 return {'type': 'error',
                         'args': {'message': '%s does not have command %s' %
                             (actor.__class__.__name__, command_name)}}

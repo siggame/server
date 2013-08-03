@@ -60,6 +60,7 @@ class Game(object):
         self.changes = defaultdict(dict)
         self.global_changes = {}
         self.removals = []
+        self.current_player = None
 
         self.globals = Globals(self)
         self.objects = ObjectHolder(self)
