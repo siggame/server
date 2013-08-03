@@ -1,10 +1,6 @@
 from collections import defaultdict
 import traceback
-
-
-def command(function):
-    function.is_command = True
-    return function
+from util import command
 
 def takes(**types):
     def inner(func):
