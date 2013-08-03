@@ -168,4 +168,6 @@ class GameApp(App):
     def disconnect(self, reason):
         if self.game:
             self.game.remove_connection(self)
+        if not self.game.connections:
+            del self.games[self.game_type][self.game_name]
         self.game = None
