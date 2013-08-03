@@ -104,29 +104,33 @@ class GameApp(App):
         App.__init__(self, connection)
         self.game_type = game_type
         self.game = None
+        self.game_name = None
 
     @command
     def join_game(self, **game_details):
         # Check if game you want to join exists, otherwise create it.
         # If game exists, make certain you can join it
         # Transition to the GameApp state
-        if 'game_number' in game_details:
-            game_number = game_details['game_number']
+        if 'game_name' in game_details:
+            game_name = game_details['game_name']
         else:
             # If you don't specify a game number, find the lowest unused
             game_number = 1
-            while game_number in self.games[self.game_type]:
+            game_name = str(game_number)
+            while game_name in self.games[self.game_type]:
                 game_number += 1
-        if game_number in self.games[self.game_type]:
+                game_name = str(game_number)
+        if game_name in self.games[self.game_type]:
             # Join existing game
-            self.game = self.games[self.game_type][game_number]
+            self.game = self.games[self.game_type][game_name]
         else:
             # Create new game
             self.game = self.game_module.Game(game_details)
-            self.games[self.game_type][game_number] = self.game
+            self.games[self.game_type][game_name] = self.game
         # Attempt to connect to the game
         if self.game.add_connection(self, game_details):
-            return {'type': 'success'}
+            self.game_name = game_name
+            return {'type': 'success', 'args': {'name': game_name}}
         else:
             return {'type': 'failure', 'args': {'message': 'game has already started'}}
         #TODO Make certain game objects are removed from self.games when they
