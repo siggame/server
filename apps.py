@@ -103,6 +103,7 @@ class GameApp(App):
                 fromlist=['*'])
         App.__init__(self, connection)
         self.game_type = game_type
+        self.game = None
 
     @command
     def join_game(self, **game_details):
@@ -159,3 +160,8 @@ class GameApp(App):
             self.game.flush()
             return {'type': 'success', 'args': {}}
         return command
+
+    def disconnect(self, reason):
+        if self.game:
+            self.game.remove_connection(self)
+        self.game = None

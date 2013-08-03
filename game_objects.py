@@ -118,6 +118,16 @@ class Game(object):
             self.start()
         return True
 
+    def remove_connection(self, connection):
+        if self.state == 'running':
+            players = [i for i in self.players if i._connection is connection]
+            if len(players) == 1:
+                player = players[0]
+                other = self.objects.players[1 - player.id]
+                self.end_game(other, 'disconnect')
+        if connection in self.connections:
+            self.connections.remove(connection)
+
     def start(self):
         self.state = 'running'
         for i in self.connections:
