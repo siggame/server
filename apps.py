@@ -68,7 +68,8 @@ class App(object):
             traceback.print_exc()
             self.send_error(command, traceback.format_exc())
             return
-        self.connection.send_json(result)
+        if result != None:
+            self.connection.send_json(result)
 
 class LoginApp(App):
     """
@@ -128,14 +129,14 @@ class GameApp(App):
             self.game = self.game_module.Game(game_details)
             self.games[self.game_type][game_name] = self.game
         # Attempt to connect to the game
-        if self.game.add_connection(self, game_details):
-            self.game_name = game_name
-            return {'type': 'success', 'args': {'name': game_name}}
-        else:
+        if self.game.state != 'new':
+            self.game = None
             return {'type': 'failure', 'args': {'message': 'game has already started'}}
-        #TODO Make certain game objects are removed from self.games when they
-        #TODO end.  Also, its more minor but game_type's should be removed as
-        #TODO well.
+        else:
+            self.game_name = game_name
+            self.send_json({'type': 'success', 'args': {'name': game_name}})
+            self.game.add_connection(self, game_details)
+            return None
 
     @command
     def end_turn(self, **args):
