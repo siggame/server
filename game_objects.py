@@ -2,6 +2,10 @@ from collections import defaultdict
 
 class GameObjectMeta(type):
     def __new__(meta, name, bases, dct):
+        if '_name' not in dct:
+            dct['name'] = name.lower()
+        if '_plural' not in dct:
+            dct['_plural'] = dct['name'] + 's'
         cls = type.__new__(meta, name, bases, dct)
         #record the type in its game
         cls._game._object_types[name] = cls
@@ -14,11 +18,12 @@ class GameObject(object):
     def __init__(self, game, **attributes):
         #Bypass the __setattr__ method when setting the game
         object.__setattr__(self, 'game', game)
-        #And the initial id, so id is defined
-        object.__setattr__(self, 'id', game.next_id())
 
         for key in self.game_state_attributes:
             setattr(self, key, None)
+        #And the initial id, so id is defined
+        object.__setattr__(self, 'id', game.next_id())
+
         game.add_object(self)
         for key, value in attributes.items():
             if key in self.game_state_attributes:
@@ -62,11 +67,13 @@ class Game(object):
         self.removals = []
         self.current_player = None
 
-        self.globals = Globals(self)
         self.objects = ObjectHolder(self)
         self.connections = []
         self.state = 'new'
         self.details = details
+
+        for i in self._globals:
+            setattr(self, i, None)
 
     def add_object(self, object):
         self.additions.append(object)
@@ -91,9 +98,9 @@ class Game(object):
         for id, values in self.changes.items():
             output.append({'action': 'update', 'id': id, 'values': values})
 
-        for glob, value in self.global_changes.items():
-            output.append({'action':'global_update', 'variable': glob,
-                'value': value})
+        if self.global_changes:
+            output.append({'action':'global_update',
+                'values': self.global_changes})
 
         for removed in self.removals:
             output.append({'action': 'remove', 'id': removed.id,
@@ -139,6 +146,7 @@ class Game(object):
             player._connection = i
             i.send_json({'type': 'player_id', 'args': {'id': player.id}})
 
+        self.turn_number = -1
         self.before_start()
         self.start_turn()
 
@@ -167,13 +175,19 @@ class Game(object):
         self.send_all({'type': 'game_over', 'args': {'winner': winner.id, 'reason': reason}})
         self.objects.clear()
 
+    def __setattr__(self, key, value):
+        object.__setattr__(self, key, value)
+        if key in self._globals:
+            self.global_changes[key] = value
+
 
 class ObjectHolder(dict):
     def __init__(self, game):
         dict.__init__(self)
         self.game = game
-        for i in game._object_types:
-            setattr(self, i, [])
+        for i in game._object_types.values():
+            setattr(self, i._plural, [])
+            print i._plural
 
     def add(self, value):
         if not isinstance(value, self.game.Object):
@@ -182,8 +196,8 @@ class ObjectHolder(dict):
 
     def clear(self):
         dict.clear(self)
-        for i in self.game._object_types:
-            setattr(self, i, [])
+        for i in self.game._object_types.values():
+            setattr(self, i._plural, [])
 
     def __setitem__(self, key, value):
         if key in self:
@@ -191,22 +205,12 @@ class ObjectHolder(dict):
         dict.__setitem__(self, key, value)
         for name, cls in self.game._object_types.items():
             if isinstance(value, cls):
-                getattr(self, name).append(value)
+                getattr(self, cls._plural).append(value)
 
     def __delitem__(self, key):
         value = self[key]
         dict.__delitem__(self, key)
-        for name in self.game._object_types:
-            list = getattr(self, name)
+        for i in self.game._object_types.values():
+            list = getattr(self, i._plural)
             if value in list:
                 list.remove(value)
-
-class Globals(object):
-    def __init__(self, game):
-        self.game = game
-        for i in game._globals:
-            setattr(self, i, None)
-
-    def __setattr__(self, key, value):
-        object.__setattr__(self, key, value)
-        self.game.global_changes[key] = value
