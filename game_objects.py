@@ -18,6 +18,7 @@ class GameObject(object):
     def __init__(self, game, **attributes):
         #Bypass the __setattr__ method when setting the game
         object.__setattr__(self, 'game', game)
+        self._new = True
 
         for key in self.game_state_attributes:
             setattr(self, key, None)
@@ -33,6 +34,7 @@ class GameObject(object):
         #We need to record changes for the game logs
         object.__setattr__(self, name, value)
         if self.game and \
+                not self._new and \
                 self.id in self.game.objects and \
                 name in self.game_state_attributes:
             self.game.changes[self.id][name] = value
@@ -92,8 +94,9 @@ class Game(object):
         output = []
 
         for added in self.additions:
-            output.append({'action':'add', 'id': added.id,
+            output.append({'action':'add', 'values': added.jsonize(),
                 'type': added.__class__.__name__})
+            added._new = False
 
         for id, values in self.changes.items():
             output.append({'action': 'update', 'id': id, 'values': values})
