@@ -45,6 +45,9 @@ class GameObject(object):
         attributes['id'] = self.id
         return attributes
 
+    def remove(self):
+        del self.game.objects[self.id]
+
 class GameMeta(type):
     def __new__(meta, name, bases, dct):
         cls = type.__new__(meta, name, bases, dct)
@@ -106,8 +109,7 @@ class Game(object):
                 'values': self.global_changes})
 
         for removed in self.removals:
-            output.append({'action': 'remove', 'id': removed.id,
-                'type': removed.__class__.__name__})
+            output.append({'action': 'remove', 'id': removed.id})
 
         self.additions = []
         self.changes = defaultdict(dict)
@@ -212,6 +214,7 @@ class ObjectHolder(dict):
     def __delitem__(self, key):
         value = self[key]
         dict.__delitem__(self, key)
+        self.game.removals.append(value)
         for i in self.game._object_types.values():
             list = getattr(self, i._plural)
             if value in list:
