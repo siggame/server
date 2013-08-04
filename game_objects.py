@@ -133,7 +133,7 @@ class Game(object):
         self.state = 'running'
         for i in self.connections:
             Player = self._object_types['Player']
-            player = Player(name = i.username)
+            player = Player(self, name = i.connection.username)
 
             #Link the player to the connection, so we can easily associate them
             player._connection = i

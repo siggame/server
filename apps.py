@@ -30,6 +30,9 @@ def takes(**types):
 
 
 class App(object):
+    def send_json(self, message):
+        self.connection.send_json(message)
+
     def send_error(self, command, message, status='error'):
         error = {'args': {}}
         error['type'] = status
@@ -62,6 +65,7 @@ class App(object):
         try:
             result = function(**args)
         except:
+            traceback.print_exc()
             self.send_error(command, traceback.format_exc())
             return
         self.connection.send_json(result)
