@@ -190,7 +190,6 @@ class ObjectHolder(dict):
         self.game = game
         for i in game._object_types.values():
             setattr(self, i._plural, [])
-            print i._plural
 
     def add(self, value):
         if not isinstance(value, self.game.Object):
