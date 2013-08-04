@@ -137,6 +137,18 @@ class GameApp(App):
         #TODO end.  Also, its more minor but game_type's should be removed as
         #TODO well.
 
+    @command
+    def end_turn(self, **args):
+        if not self.game or self.game.state != 'running':
+            return {'type': 'failure',
+                    args: {'message': 'the game has not begun'}}
+        if self.connection != self.game.current_player._connection:
+            return {'type': 'failure',
+                    'args': {'message': 'not your turn'}}
+        self.game.end_turn()
+        return {'type': 'success', 'args': {}}
+
+
     def get_command(self, command_name):
         command = App.get_command(self, command_name)
         if command:
