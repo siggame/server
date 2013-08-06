@@ -1,4 +1,14 @@
 from collections import defaultdict
+import os
+import json
+
+#Future proof a bit
+try:
+    #Python 2
+    from ConfigParser import SafeConfigParser as ConfigParser
+except ImportError:
+    #Python 3
+    from configparser import ConfigParser
 
 class GameObjectMeta(type):
     def __new__(meta, name, bases, dct):
@@ -184,6 +194,27 @@ class Game(object):
         object.__setattr__(self, key, value)
         if key in self._globals:
             self.global_changes[key] = value
+
+    def load_config(self, name):
+        def parse(value):
+            try:
+                return json.loads(value)
+            except:
+                return value
+        if '.' not in name:
+            name += '.cfg'
+        path = os.path.join('plugins', self._name, 'config',  name)
+        
+        parser = ConfigParser()
+        parser.optionxform = str
+        parser.readfp(open(path))
+
+        config = {key:parse(value) for key, value in parser.items('DEFAULT')}
+        for s in parser.sections():
+            config[s] = {key:parse(value) for key, value in parser.items(s)}
+        return config
+
+        
 
 
 class ObjectHolder(dict):
