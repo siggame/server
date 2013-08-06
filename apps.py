@@ -1,6 +1,7 @@
 from collections import defaultdict
 import traceback
 from util import command, is_command
+import re
 
 def takes(**types):
     def inner(func):
@@ -121,6 +122,10 @@ class GameApp(App):
             while game_name in self.games[self.game_type]:
                 game_number += 1
                 game_name = str(game_number)
+        if len(game_name) > 40:
+            return {'type': 'failure', 'args': {'message': 'game name too long'}}
+        if re.search('[/\\:*?"<>|@.\00]', game_name):
+            return {'type': 'failure', 'args': {'message': 'game name contains illegal characters'}}
         if game_name in self.games[self.game_type]:
             # Join existing game
             self.game = self.games[self.game_type][game_name]
