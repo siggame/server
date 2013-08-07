@@ -147,8 +147,8 @@ class GameApp(App):
     def end_turn(self, **args):
         if not self.game or self.game.state != 'running':
             return {'type': 'failure',
-                    args: {'message': 'the game has not begun'}}
-        if self.connection != self.game.current_player._connection:
+                    'args': {'message': 'the game has not begun'}}
+        if self.game.current_player._connection != self:
             return {'type': 'failure',
                     'args': {'message': 'not your turn'}}
         self.game.end_turn()
@@ -161,11 +161,9 @@ class GameApp(App):
             return command
         if not self.game or self.game.state != 'running':
             return None
-        #TODO Make sure it's the player's turn
 
-        @command
         def command(**args):
-            if self.connection != self.game.current_player._connection:
+            if self.game.current_player._connection != self:
                 return {'type': 'failure',
                         'args': {'message': 'not your turn'}}
             if 'actor' not in args:
@@ -185,6 +183,7 @@ class GameApp(App):
             command(**args)
             self.game.flush()
             return {'type': 'success', 'args': {}}
+        command.is_command = True
         return command
 
     def disconnect(self, reason):
