@@ -130,6 +130,9 @@ class Game(object):
         self.global_changes = {}
         self.removals = []
 
+        if not output:
+            return True
+
         message = {'type': 'changes',
                 'args': {'changes': output}}
 
