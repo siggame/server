@@ -167,6 +167,8 @@ class Game(object):
 
         self.turn_number = -1
         self.before_start()
+        self.flush()
+        self.send_all({'type': 'start_game'})
         self.start_turn()
 
     def start_turn(self):
