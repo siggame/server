@@ -1,6 +1,7 @@
 from collections import defaultdict
 import os
 import json
+from logger import Logger
 
 #Future proof a bit
 try:
@@ -86,6 +87,8 @@ class Game(object):
         self.connections = []
         self.state = 'new'
         self.details = details
+        self._game_name = details['game_name']
+        self.logger = Logger(self)
 
         for i in self._globals:
             setattr(self, i, None)
@@ -102,6 +105,7 @@ class Game(object):
         for i in self.connections:
             i.connection.send_json(message)
         #TODO: Server-side glog
+        self.logger.write(message)
 
     def flush(self):
         output = []
@@ -189,6 +193,7 @@ class Game(object):
         self.winner = winner.id
         self.send_all({'type': 'game_over', 'args': {'winner': winner.id, 'reason': reason}})
         self.objects.clear()
+        self.logger.close()
 
     def __setattr__(self, key, value):
         object.__setattr__(self, key, value)

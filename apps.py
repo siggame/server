@@ -122,6 +122,7 @@ class GameApp(App):
             while game_name in self.games[self.game_type]:
                 game_number += 1
                 game_name = str(game_number)
+            game_details['game_name'] = game_name
         if len(game_name) > 40:
             return {'type': 'failure', 'args': {'message': 'game name too long'}}
         if re.search('[/\\:*?"<>|@.\00]', game_name):
