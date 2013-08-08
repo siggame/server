@@ -156,6 +156,15 @@ class GameApp(App):
         return {'type': 'success', 'args': {}}
 
 
+    @command
+    def get_log(self, **args):
+        if not self.game or self.game.state != 'over':
+            return {'type': 'failure',
+                    'args': {'message': 'the game has not begun'}}
+        log = open(self.game.logger.path).read()
+        return {'type': 'success', 'args':{
+            'log': log}}
+
     def get_command(self, command_name):
         command = App.get_command(self, command_name)
         if command:
