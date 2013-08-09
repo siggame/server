@@ -152,8 +152,9 @@ class GameApp(App):
         if self.game.current_player._connection != self:
             return {'type': 'failure',
                     'args': {'message': 'not your turn'}}
+        self.send_json({'type': 'success', 'args': {}})
         self.game.end_turn()
-        return {'type': 'success', 'args': {}}
+        return None
 
 
     @command
