@@ -14,9 +14,9 @@ except ImportError:
 class GameObjectMeta(type):
     def __new__(meta, name, bases, dct):
         if '_name' not in dct:
-            dct['name'] = name.lower()
+            dct['_name'] = name.lower()
         if '_plural' not in dct:
-            dct['_plural'] = dct['name'] + 's'
+            dct['_plural'] = dct['_name'] + 's'
         cls = type.__new__(meta, name, bases, dct)
         #record the type in its game
         cls._game._object_types[name] = cls
@@ -64,6 +64,7 @@ class GameMeta(type):
         cls = type.__new__(meta, name, bases, dct)
         cls._object_types = {}
         class Object(GameObject):
+            _name = 'game_object'
             _game = cls
             #GameObject can't have the metaclass because it has no game
             __metaclass__ = GameObjectMeta
@@ -150,10 +151,10 @@ class Game(object):
 
     def remove_connection(self, connection):
         if self.state == 'running':
-            players = [i for i in self.objects.players if i._connection is connection]
+            players = [i for i in self.players if i._connection is connection]
             if len(players) == 1:
                 player = players[0]
-                other = self.objects.players[1 - player.id]
+                other = self.players[1 - player.id]
                 self.end_game(other, 'disconnect')
         if connection in self.connections:
             self.connections.remove(connection)
@@ -177,7 +178,7 @@ class Game(object):
     def start_turn(self):
         self.turn_number += 1
         self.player_id = self.turn_number % 2
-        self.current_player = self.objects.players[self.player_id]
+        self.current_player = self.players[self.player_id]
         self.before_turn()
         self.flush()
         self.send_all({'type': 'start_turn'})
@@ -232,7 +233,7 @@ class ObjectHolder(dict):
         dict.__init__(self)
         self.game = game
         for i in game._object_types.values():
-            setattr(self, i._plural, [])
+            setattr(self.game, i._plural, [])
 
     def add(self, value):
         if not isinstance(value, self.game.Object):
@@ -242,7 +243,7 @@ class ObjectHolder(dict):
     def clear(self):
         dict.clear(self)
         for i in self.game._object_types.values():
-            setattr(self, i._plural, [])
+            setattr(self.game, i._plural, [])
 
     def __setitem__(self, key, value):
         if key in self:
@@ -250,13 +251,13 @@ class ObjectHolder(dict):
         dict.__setitem__(self, key, value)
         for name, cls in self.game._object_types.items():
             if isinstance(value, cls):
-                getattr(self, cls._plural).append(value)
+                getattr(self.game, cls._plural).append(value)
 
     def __delitem__(self, key):
         value = self[key]
         dict.__delitem__(self, key)
         self.game.removals.append(value)
         for i in self.game._object_types.values():
-            list = getattr(self, i._plural)
+            list = getattr(self.game, i._plural)
             if value in list:
                 list.remove(value)
