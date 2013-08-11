@@ -1,4 +1,5 @@
 import random
+from functools import wraps
 
 from os import listdir
 from os.path import isfile, join
@@ -138,3 +139,45 @@ class MapGenerator(object):
         for y in range(self.height):
             for x in range(self.width):
                 yield self.grid[x, y]
+
+def takes(**types):
+    def inner(func):
+        @wraps(func)
+        def func_wrapper(self, **kwargs):
+            errors = []
+            for i, j in kwargs.items():
+                if i not in types:
+                    errors.append("%s is an illegal parameter" % i)
+                    continue
+                if callable(types[i]):
+                    try:
+                        j = types[i](j)
+                        kwargs[i] = j
+                    except ValueError:
+                        errors.append("%s should be a %s, (received %s)" %
+                                (i, types[i].__name__, j.__class__.__name__))
+                elif isinstance(types[i], basestring):
+                    if types[i] not in self.game._object_types:
+                        print("{} for argument {} of {} not found in game types".
+                                format(types[i], i, func.__name__))
+                        continue
+                    if j not in self.game.objects:
+                        errors.append("object {} for {} does not exist".format(j, i))
+                        continue
+                    j = self.game.objects[j]
+                    if not isinstance(j, types[i]):
+                        errors.append("object {} for {} does is not {}".
+                                format(j, i, types[i]))
+            for i in types:
+                if i not in kwargs:
+                    errors.append("%s expected but not received" % i)
+
+            if errors:
+                return {'type': 'failure',
+                        'args': {
+                            'message': '\n'.join(errors)
+                            }
+                        }
+            return func(self, **kwargs)
+        return func_wrapper
+    return inner

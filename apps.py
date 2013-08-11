@@ -191,9 +191,12 @@ class GameApp(App):
                         'args': {'message': '%s does not have command %s' %
                             (actor.__class__.__name__, command_name)}}
             #TODO make sure command is a command function rather than a security compromise
-            command(**args)
+            value = command(**args)
             self.game.flush()
-            return {'type': 'success', 'args': {}}
+            if not value:
+                return {'type': 'success', 'args': {}}
+            else:
+                return value
         command.is_command = True
         return command
 
