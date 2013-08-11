@@ -181,3 +181,9 @@ def takes(**types):
             return func(self, **kwargs)
         return func_wrapper
     return inner
+
+def success(**args):
+    return {'type': 'success', 'args': args}
+
+def failure(**args):
+    return {'type': 'failure', 'args': args}
