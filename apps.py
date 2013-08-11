@@ -11,7 +11,7 @@ def takes(**types):
                 if i not in types:
                     errors.append("%s is an illegal parameter" % i)
                     continue
-                if not isinstance(i, types[i]):
+                if not isinstance(j, types[i]):
                     errors.append("%s should be a %s, (received %s)" %
                             (i, types[i], j.__class__.__name__))
                     continue
