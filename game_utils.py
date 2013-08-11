@@ -28,7 +28,7 @@ class Grid(object):
     def __getitem__(self, key):
         return self.grid.get(key, None)
 
-class MapGenerator(object):
+class TileMapGenerator(object):
     class Point(object):
         def __init__(self, x, y):
             self.x = x
