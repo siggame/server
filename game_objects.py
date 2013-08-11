@@ -37,6 +37,7 @@ class GameObject(object):
         object.__setattr__(self, 'id', game.next_id())
 
         game.add_object(self)
+        self.removed = False
         for key, value in attributes.items():
             if key in self.game_state_attributes:
                 setattr(self, key, value)
@@ -57,6 +58,7 @@ class GameObject(object):
         return attributes
 
     def remove(self):
+        self.removed = True
         del self.game.objects[self.id]
 
 class GameMeta(type):
