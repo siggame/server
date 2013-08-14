@@ -63,6 +63,13 @@ class GameObject(object):
         self.removed = True
         del self.game.objects[self.id]
 
+
+    def before_turn(self):
+        pass
+
+    def after_turn(self):
+        pass
+
 class GameMeta(type):
     def __new__(meta, name, bases, dct):
         cls = type.__new__(meta, name, bases, dct)
@@ -184,12 +191,16 @@ class Game(object):
         self.player_id = self.turn_number % 2
         self.current_player = self.players[self.player_id]
         self.before_turn()
+        for i in self.objects.values():
+            i.before_turn()
         self.flush()
         self.send_all({'type': 'start_turn'})
 
     def end_turn(self):
         self.send_all({'type': 'end_turn'})
         self.after_turn()
+        for i in self.objects.values():
+            i.after_turn()
         self.flush()
 
         winner, reason = self.check_winner()
@@ -228,8 +239,6 @@ class Game(object):
         for s in parser.sections():
             config[s] = {key:parse(value) for key, value in parser.items(s)}
         return config
-
-
 
 
 class ObjectHolder(dict):
