@@ -44,11 +44,13 @@ class GameObject(object):
 
     def __setattr__(self, name, value):
         #We need to record changes for the game logs
+        old = getattr(self, name, None)
         object.__setattr__(self, name, value)
         if self.game and \
                 not self._new and \
                 self.id in self.game.objects and \
-                name in self.game_state_attributes:
+                name in self.game_state_attributes and \
+                old != value:
             self.game.changes[self.id][name] = value
 
     def jsonize(self):
@@ -217,7 +219,7 @@ class Game(object):
         if '.' not in name:
             name += '.cfg'
         path = os.path.join('plugins', self._name, 'config',  name)
-        
+
         parser = ConfigParser()
         parser.optionxform = str
         parser.readfp(open(path))
@@ -227,7 +229,7 @@ class Game(object):
             config[s] = {key:parse(value) for key, value in parser.items(s)}
         return config
 
-        
+
 
 
 class ObjectHolder(dict):
