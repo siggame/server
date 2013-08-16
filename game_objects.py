@@ -86,6 +86,8 @@ class Game(object):
     _object_types = {}
     _globals = []
     __metaclass__ = GameMeta
+    start_time = 10
+    time_inc = 1
     # Shell game to show interaction
     def __init__(self, details):
         self.highest_id = -1
@@ -175,6 +177,7 @@ class Game(object):
         for i in self.connections:
             Player = self._object_types['Player']
             player = Player(self, name = i.connection.username)
+            player.time = self.start_time
 
             #Link the player to the connection, so we can easily associate them
             player._connection = i
@@ -190,6 +193,7 @@ class Game(object):
         self.turn_number += 1
         self.player_id = self.turn_number % 2
         self.current_player = self.players[self.player_id]
+        self.current_player.time += self.time_inc
         self.before_turn()
         for i in self.objects.values():
             i.before_turn()
