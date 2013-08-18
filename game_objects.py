@@ -17,6 +17,18 @@ class GameObjectMeta(type):
             dct['_name'] = name.lower()
         if '_plural' not in dct:
             dct['_plural'] = dct['_name'] + 's'
+        if '_relations' in dct:
+            for key in dct['_relations']:
+                @property
+                def getter(self, key=key):
+                    return self.game.objects[getattr(self, key+'_id')]
+                dct[key] = getter
+        if '_remotes' in dct:
+            for key, source in dct['_remotes'].items():
+                @property
+                def getter(self, key=key, source=source):
+                    return getattr(getattr(self, source), key)
+                dct[key] = getter
         cls = type.__new__(meta, name, bases, dct)
         #record the type in its game
         cls._game._object_types[name] = cls
@@ -24,14 +36,16 @@ class GameObjectMeta(type):
 
 class GameObject(object):
     # Root game object
-    game_state_attributes = set()
+    _game_state_attributes = set()
+    relations = {}
+    remotes = {}
 
     def __init__(self, game, **attributes):
         #Bypass the __setattr__ method when setting the game
         object.__setattr__(self, 'game', game)
         self._new = True
 
-        for key in self.game_state_attributes:
+        for key in self._game_state_attributes:
             setattr(self, key, None)
         #And the initial id, so id is defined
         object.__setattr__(self, 'id', game.next_id())
@@ -39,7 +53,7 @@ class GameObject(object):
         game.add_object(self)
         self.removed = False
         for key, value in attributes.items():
-            if key in self.game_state_attributes:
+            if key in self._game_state_attributes:
                 setattr(self, key, value)
 
     def __setattr__(self, name, value):
@@ -49,13 +63,13 @@ class GameObject(object):
         if self.game and \
                 not self._new and \
                 self.id in self.game.objects and \
-                name in self.game_state_attributes and \
+                name in self._game_state_attributes and \
                 old != value:
             self.game.changes[self.id][name] = value
 
     def jsonize(self):
         attributes = dict((key, getattr(self, key))
-                          for key in self.game_state_attributes)
+                          for key in self._game_state_attributes)
         attributes['id'] = self.id
         return attributes
 
@@ -72,6 +86,12 @@ class GameObject(object):
 
 class GameMeta(type):
     def __new__(meta, name, bases, dct):
+        if '_relations' in dct:
+            for key in dct['_relations']:
+                @property
+                def getter(self, key=key):
+                    return self.objects[getattr(self, key+'_id')]
+                dct[key] = getter
         cls = type.__new__(meta, name, bases, dct)
         cls._object_types = {}
         class Object(GameObject):
