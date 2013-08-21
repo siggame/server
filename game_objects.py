@@ -37,8 +37,6 @@ class GameObjectMeta(type):
 class GameObject(object):
     # Root game object
     _game_state_attributes = set()
-    relations = {}
-    remotes = {}
 
     def __init__(self, game, **attributes):
         #Bypass the __setattr__ method when setting the game
@@ -121,7 +119,7 @@ class Game(object):
         self.connections = []
         self.state = 'new'
         self.details = details
-        self._game_name = details['game_name']
+        self.game_name = details['game_name']
         self.logger = Logger(self)
 
         for i in self._globals:
