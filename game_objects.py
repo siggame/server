@@ -22,6 +22,9 @@ class GameObjectMeta(type):
                 @property
                 def getter(self, key=key):
                     return self.game.objects[getattr(self, key+'_id')]
+                @getter.setter
+                def getter(self, value, key=key):
+                    return setattr(self. key+'_id', value.id)
                 dct[key] = getter
         if '_remotes' in dct:
             for key, source in dct['_remotes'].items():
@@ -89,6 +92,9 @@ class GameMeta(type):
                 @property
                 def getter(self, key=key):
                     return self.objects[getattr(self, key+'_id')]
+                @getter.setter
+                def getter(self, value, key=key):
+                    return setattr(self, key+'_id', value.id)
                 dct[key] = getter
         cls = type.__new__(meta, name, bases, dct)
         cls._object_types = {}
