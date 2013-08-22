@@ -2,6 +2,7 @@ from collections import defaultdict
 import os
 import json
 from logger import Logger
+from util import uncamel
 
 #Future proof a bit
 try:
@@ -14,7 +15,7 @@ except ImportError:
 class GameObjectMeta(type):
     def __new__(meta, name, bases, dct):
         if '_name' not in dct:
-            dct['_name'] = name.lower()
+            dct['_name'] = uncamel(name)
         if '_plural' not in dct:
             dct['_plural'] = dct['_name'] + 's'
         if '_relations' in dct:
