@@ -1,9 +1,10 @@
 import random
-from functools import wraps
 
+from functools import wraps
+from heapq import heappop, heappush
+from math import ceil
 from os import listdir
 from os.path import isfile, join
-from math import ceil
 
 class Grid(object):
     def __init__(self, game, type, dimensions = ('x', 'y')):
@@ -139,6 +140,44 @@ class TileMapGenerator(object):
         for y in range(self.height):
             for x in range(self.width):
                 yield self.grid[x, y]
+
+class PathFinder():
+
+    def h_score(self, current, dest):
+        return self.distance(current[0], current[1], dest[0], dest[1])
+
+    def get_adjacent(self, source):
+        return []
+
+    def find_path(self,  source, dest):
+        closed = {source: None}
+        if source == dest:
+            return [source]
+         # 0 = f, 1 = current (x,y), 2 = g
+        open = [ (self.h_score(source, dest), source, 0) ]
+        while len(open) > 0:
+            h, point, g = heappop(open)
+            for neighbor in self.get_adjacent(point):
+                if neighbor in closed:
+                    continue
+                closed[neighbor] = point
+                if neighbor == dest:
+                    return self.make_path(closed, dest)
+                heappush(open, (g+1+self.hscore(neighbor, dest),
+                    neighbor, g+1) )
+        return None
+
+    def make_path(self, closed, dest):
+        current = dest
+        path = [current]
+        while closed[current]:
+            current = closed[current]
+            path.append(current)
+
+        return reversed(path)
+
+    def distance(self, x1, y1, x2, y2):
+        return abs(x2-x1) + abs(y2-y1)
 
 def takes(**types):
     def inner(func):
