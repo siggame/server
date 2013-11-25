@@ -83,8 +83,8 @@ class LoginApp(App):
     """
 
     @command
-    @takes(connection_type=basestring, username=basestring, password=basestring)
-    def login(self, connection_type=str, username = '', password = ''):
+    @takes(connection_type=basestring, username=basestring)
+    def login(self, connection_type=str, username = ''):
         # TODO Actual login stuff
         self.connection.username = username
         try:
