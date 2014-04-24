@@ -131,6 +131,9 @@ class Game(object):
         self.game_name = details['game_name']
         self.logger = Logger(self)
 
+        #convenience so the utilities for game objects also work on games
+        self.game = self
+
         for i in self._globals:
             setattr(self, i, None)
 
