@@ -178,19 +178,23 @@ class GameApp(App):
                 return {'type': 'failure',
                         'args': {'message': 'not your turn'}}
             if 'actor' not in args:
-                return {'type': 'bad arguments',
-                        'args': {'message': 'actor required'}}
-            actor = self.game.objects.get(args['actor'], None)
-            del args['actor']
-            if not actor:
-                return {'type': 'bad arguments',
-                        'args': {'message': 'actor does not exist'}}
-            command = getattr(actor, command_name, None)
-            if not command or not is_command(command):
-                return {'type': 'error',
-                        'args': {'message': '%s does not have command %s' %
-                            (actor.__class__.__name__, command_name)}}
-            #TODO make sure command is a command function rather than a security compromise
+                command = getattr(self.game, command_name, None)
+                if not command or not is_command(command):
+                    return {'type': 'error',
+                        'args': {'message': 'global command %s does not exist' %
+                            command_name
+                            }}
+            else:
+                actor = self.game.objects.get(args['actor'], None)
+                del args['actor']
+                if not actor:
+                    return {'type': 'bad arguments',
+                            'args': {'message': 'actor does not exist'}}
+                command = getattr(actor, command_name, None)
+                if not command or not is_command(command):
+                    return {'type': 'error',
+                            'args': {'message': '%s does not have command %s' %
+                                (actor.__class__.__name__, command_name)}}
             value = command(**args)
             self.game.flush()
             if not value:
