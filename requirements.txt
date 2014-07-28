@@ -1,0 +1,7 @@
+# packages used for server
+# run pip install -r requirements.txt to easily install all packages and versions into your environment  
+# uses python 2.7
+Twisted==14.0.0
+argparse==1.2.1
+wsgiref==0.1.2
+zope.interface==4.1.1
